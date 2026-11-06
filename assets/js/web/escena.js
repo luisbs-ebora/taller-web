@@ -463,62 +463,78 @@ export async function vistaEscena() {
     await alMomento(async () => { for (let i = 0; i < n; i++) await PASOS[i].hacer(ctx); });
     if (mia !== generacion) return false;
     E.resalte = null; E.cursor = null;
-    hecho = n; ocupado = false;
+    hecho = n; ocupado = false; enCurso = null;
     pintarTodo();
     refrescar();
     return true;
   }
+  // La barra enseña el paso que se está viendo (el que se acaba de hacer) hasta que se pulse Siguiente.
+  let enCurso = null, fin = false;
+  const visto = () => (enCurso !== null ? enCurso : hecho - 1);
   async function hacerPaso(i) {
     if (ocupado) return;
     const mia = generacion;
-    ocupado = true; mensajeMal = null; refrescar();
+    ocupado = true; mensajeMal = null; enCurso = i; fin = false; refrescar();
     try { await PASOS[i].hacer(ctx); } catch (e) { console.error(e); }
     if (mia !== generacion) return;
     raton.classList.remove('visible');
-    hecho = i + 1; ocupado = false;
+    hecho = i + 1; ocupado = false; enCurso = null;
     refrescar();
   }
+  // «¿Y si lo hago mal?» del paso que se está viendo: se deshace, se hace mal y se vuelve a dejar bien.
   async function verMal() {
-    const p = PASOS[hecho];
-    if (ocupado || !p || !p.mal) return;
+    const i = hecho - 1, p = PASOS[i];
+    if (ocupado || fin || !p || !p.mal) return;
+    if (!(await construir(i))) return;
     const mia = generacion;
-    ocupado = true; mensajeMal = p; refrescar();
-    try { await p.mal(ctx); await esperar(1200); } catch (e) { console.error(e); }
+    ocupado = true; mensajeMal = p; enCurso = i; refrescar();
+    try { await p.mal(ctx); await esperar(1500); } catch (e) { console.error(e); }
     if (mia !== generacion) return;
-    await construir(hecho);
+    enCurso = null;
+    await construir(i + 1);
     mensajeMal = p; refrescar();
   }
-  const siguiente = () => { if (ocupado) return; if (hecho >= PASOS.length) construir(0); else hacerPaso(hecho); };
-  const anterior = () => { if (!ocupado && hecho > 0) construir(hecho - 1); };
-  async function repetir() { if (ocupado || !hecho) return; const n = hecho; if (await construir(n - 1)) hacerPaso(n - 1); }
-  async function irA(i) { if (ocupado && i !== hecho) { generacion++; ocupado = false; } if (await construir(i)) hacerPaso(i); }
+  function siguiente() {
+    if (ocupado) return;
+    if (hecho < PASOS.length) return hacerPaso(hecho);
+    if (!fin) { fin = true; mensajeMal = null; refrescar(); return; }
+    fin = false; construir(0);
+  }
+  const anterior = () => { if (ocupado) return; if (fin) { fin = false; mensajeMal = null; refrescar(); } else if (hecho > 0) { mensajeMal = null; construir(hecho - 1); } };
+  async function repetir() { if (ocupado || !hecho || fin) return; const n = hecho; if (await construir(n - 1)) hacerPaso(n - 1); }
+  async function irA(i) { if (ocupado) { generacion++; ocupado = false; enCurso = null; } fin = false; mensajeMal = null; if (await construir(i)) hacerPaso(i); }
 
   function refrescar() {
-    const p = PASOS[hecho];
+    const iv = visto(), p = PASOS[iv];
     barra.classList.toggle('error', !!mensajeMal);
     if (mensajeMal) {
-      cPaso.textContent = `Paso ${hecho + 1} de ${PASOS.length} · Así NO`;
+      cPaso.textContent = `Paso ${iv + 1} de ${PASOS.length} · Así NO`;
       cTitulo.textContent = mensajeMal.tituloMal; cTexto.textContent = mensajeMal.textoMal;
-    } else if (p) {
-      cPaso.textContent = `Paso ${hecho + 1} de ${PASOS.length} · ${SESIONES[p.sesion]}`;
-      cTitulo.textContent = p.nombre; cTexto.textContent = p.texto;
-    } else {
+    } else if (fin) {
       cPaso.textContent = 'Terminado';
       cTitulo.textContent = '¡Sitio web terminado!';
       cTexto.textContent = 'Cuatro páginas enlazadas con el mismo menú, imágenes con alt, una tabla, un formulario con sus label, vídeo, etiquetas semánticas y sin errores en el validador. Es la lista de comprobación del apartado 4.1.';
+    } else if (p) {
+      cPaso.textContent = `Paso ${iv + 1} de ${PASOS.length} · ${SESIONES[p.sesion]}`;
+      cTitulo.textContent = p.nombre; cTexto.textContent = p.texto;
+    } else {
+      cPaso.textContent = `${PASOS.length} pasos · 4 sesiones`;
+      cTitulo.textContent = 'Mi primer sitio web';
+      cTexto.textContent = 'Vamos a hacer una web de cuatro páginas, de la carpeta vacía al sitio completo. Pulsa Siguiente (→) para empezar. Cada paso se queda en pantalla hasta que pulses Siguiente.';
     }
-    bAnt.disabled = ocupado || hecho === 0;
-    bRep.disabled = ocupado || hecho === 0;
+    bAnt.disabled = ocupado || (hecho === 0 && !fin);
+    bRep.disabled = ocupado || hecho === 0 || fin;
     bSig.disabled = ocupado;
-    bSig.textContent = p ? 'Siguiente ▶' : 'Volver a empezar';
-    bMal.hidden = !p || !p.mal;
+    bSig.textContent = hecho === 0 && !ocupado ? 'Empezar ▶' : hecho < PASOS.length || ocupado ? 'Siguiente ▶' : fin ? 'Volver a empezar' : 'Terminar ▶';
+    bMal.hidden = fin || !p || !p.mal;
     bMal.disabled = ocupado;
     let sesion = -1;
     const items = [];
     PASOS.forEach((q, i) => {
       if (q.sesion !== sesion) { sesion = q.sesion; items.push(h('li.tw-sesion', SESIONES[sesion])); }
-      items.push(h('li' + (i < hecho ? '.hecho' : i === hecho ? '.actual' : ''),
-        h('button', { type: 'button', onclick: () => irA(i) }, h('span.am-num', i < hecho ? '✓' : String(i + 1)), h('span', q.nombre))));
+      const hechoYa = i < hecho && i !== iv;
+      items.push(h('li' + (i === iv ? '.actual' : hechoYa ? '.hecho' : ''),
+        h('button', { type: 'button', onclick: () => irA(i) }, h('span.am-num', hechoYa ? '✓' : String(i + 1)), h('span', q.nombre))));
     });
     lista.replaceChildren(...items);
     const act = lista.querySelector('.actual');
