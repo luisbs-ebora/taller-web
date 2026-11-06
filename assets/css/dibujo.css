@@ -7,7 +7,8 @@
   --d-naranja: #ff6a3d; --d-amarillo: #ffd23f; --d-verde: #3fbf6a; --d-azul: #4a86e8; --d-lila: #8b6fe0;
   --d-borde: 3px solid var(--d-tinta); --d-sombra: 4px 4px 0 var(--d-tinta);
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --d-tinta: #0b0a10; --d-papel: #262b35; --d-fondo: #161a20; } }
+/* El estilo dibujo es de papel claro: la web va siempre en modo claro (data-theme="light" en index.html) */
+.tw-heroe-dibujo text { font-variant-ligatures: none; }
 body { background: var(--d-fondo) radial-gradient(circle, rgba(29,27,36,.07) 1.2px, transparent 1.4px) 0 0 / 22px 22px; }
 
 /* Cabecera: barra de papel con borde de tinta */
