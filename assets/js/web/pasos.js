@@ -561,6 +561,10 @@ export const PASOS = [
     },
     // Las cajas de colores se quedan mientras se ve este paso
     alVer(ctx) { ctx.semantica(true); },
+    // Con Siguiente se quitan las cajas y se ve la web tal cual; el siguiente Siguiente ya pasa al paso 15
+    quitar(ctx) { ctx.semantica(false); },
+    botonQuitar: 'Ver la web ▶',
+    textoQuitar: 'Sin las cajas, así se ve la página: igual que antes. Las etiquetas semánticas no cambian el aspecto, cambian el significado: ahora el navegador, Google y el lector de pantalla saben qué es cada parte. (← vuelve a enseñar las cajas.)',
     tituloMal: 'Todo con <div>',
     textoMal: 'Con div la página puede verse igual, pero son cajas sin nombre: ni Google ni el lector de pantalla saben dónde está el menú o el contenido principal.',
     async mal(ctx) {
