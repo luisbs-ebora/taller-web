@@ -465,6 +465,7 @@ export async function vistaEscena() {
     E.resalte = null; E.cursor = null;
     hecho = n; ocupado = false; enCurso = null;
     pintarTodo();
+    if (n > 0 && PASOS[n - 1].alVer) PASOS[n - 1].alVer(ctx);
     refrescar();
     return true;
   }
@@ -475,6 +476,9 @@ export async function vistaEscena() {
     if (ocupado) return;
     const mia = generacion;
     ocupado = true; mensajeMal = null; enCurso = i; fin = false; refrescar();
+    // lo que se quedó a la vista en el paso anterior (cajas semánticas, F12) se quita al avanzar
+    if (E.semantica) ctx.semantica(false);
+    if (E.devtools) ctx.devtools(false);
     try { await PASOS[i].hacer(ctx); } catch (e) { console.error(e); }
     if (mia !== generacion) return;
     raton.classList.remove('visible');

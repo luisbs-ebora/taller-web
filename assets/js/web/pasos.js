@@ -554,11 +554,13 @@ export const PASOS = [
       await ctx.cambiar('index.html', viejo, CABECERA + '  <main>\n' + sangrar(viejo) + '  </main>\n' + PIE);
       await ctx.guardar();
       await ctx.ver('index.html');
+      if (ctx.rapido) return;
       ctx.semantica(true);
       ctx.burbuja('header · nav · main · footer', { css: 'main' });
       await ctx.esperar(2600);
-      ctx.semantica(false);
     },
+    // Las cajas de colores se quedan mientras se ve este paso
+    alVer(ctx) { ctx.semantica(true); },
     tituloMal: 'Todo con <div>',
     textoMal: 'Con div la página puede verse igual, pero son cajas sin nombre: ni Google ni el lector de pantalla saben dónde está el menú o el contenido principal.',
     async mal(ctx) {
@@ -569,8 +571,7 @@ export const PASOS = [
       await ctx.ver('index.html');
       ctx.semantica(true);
       ctx.burbuja('div, div, div, div…', { css: 'div', i: 2 }, 'peligro');
-      await ctx.esperar(2400);
-      ctx.semantica(false);
+      await ctx.esperar(3500);
     },
   },
 
@@ -580,8 +581,8 @@ export const PASOS = [
     texto: 'F12 abre las herramientas del navegador. En Elementos se ve el árbol de la página: al pasar por una línea se ilumina esa parte. Con doble clic se cambia un texto para probar, pero al recargar desaparece.',
     async hacer(ctx) {
       await ctx.ver('index.html');
+      if (ctx.rapido) return;
       ctx.devtools(true);
-      if (ctx.rapido) { ctx.devtools(false); return; }
       ctx.burbuja('F12', 'url', '', 1200);
       await ctx.esperar(600);
       await ctx.inspeccionar(7);
@@ -597,8 +598,9 @@ export const PASOS = [
       await ctx.ver('index.html');
       ctx.burbuja('Al recargar, vuelve a estar como en el fichero', { css: 'h1' });
       await ctx.esperar(1700);
-      ctx.devtools(false);
     },
+    // El panel F12 se queda abierto mientras se ve este paso
+    alVer(ctx) { ctx.devtools(true); },
   },
   {
     sesion: 3, nombre: 'El validador del W3C',
