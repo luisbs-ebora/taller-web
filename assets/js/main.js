@@ -3,6 +3,7 @@ import { h } from './util.js';
 import { vistaInicio } from './vistas/inicio.js';
 import { vistaEscena } from './web/escena.js';
 import { vistaPractica } from './vistas/practica.js';
+import { vistaIguala } from './vistas/iguala.js';
 
 const main = document.getElementById('contenido');
 let actual = null;
@@ -20,6 +21,7 @@ const RUTAS = [
   [/^creditos$/, () => vistaCreditos()],
   [/^clase$/, () => vistaEscena()],
   [/^practica$/, () => vistaPractica()],
+  [/^css$/, () => vistaIguala()],
 ];
 
 let turno = 0;

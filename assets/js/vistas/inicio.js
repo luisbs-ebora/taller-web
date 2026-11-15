@@ -41,5 +41,6 @@ export function vistaInicio() {
       dibujo()),
     h('div.rejilla', { style: 'margin-top:28px' },
       tarjeta('#/clase', '1', 'Mi primer sitio web', 'Las cuatro sesiones del tema en 18 pasos: esqueleto, etiquetas, imagen, enlaces, tabla, formulario, vídeo, HTML5, F12, validador y accesibilidad.', '18 pasos'),
-      tarjeta('#/practica', '2', 'Arregla la página', 'Una página con 5 errores escondidos. Encuéntralos, corrígelos y pásala por el validador hasta que salga en verde.', 'Sin nota'))) };
+      tarjeta('#/practica', '2', 'Arregla la página', 'Una página con 5 errores escondidos. Encuéntralos, corrígelos y pásala por el validador hasta que salga en verde.', 'Sin nota'),
+      tarjeta('#/css', '3', 'Iguala la página (CSS)', 'El HTML está bien, pero la hoja de estilos tiene 5 fallos: selectores, unidades, puntos y comas… Corrígela hasta que tu página se vea como el modelo.', 'Sin nota'))) };
 }

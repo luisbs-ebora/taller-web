@@ -190,3 +190,10 @@
   .tw-p-editor, .tw-p-vista { height: 50vh; }
   .tw-estado { margin-left: 0; width: 100%; }
 }
+
+/* Iguala la página (CSS) */
+.tw-ig-vistas { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; min-height: 0; }
+.tw-ig-rotulo { margin: 0; padding: 4px 12px; font: 700 13px var(--f-mono); background: var(--papel-2); color: var(--tinta); border-bottom: 2px solid var(--tinta); }
+.tw-ig-rotulo.tuya { background: var(--azul-2); }
+.tw-ig-html { margin: 0; padding: 12px 14px; font: 14px/1.5 var(--f-mono); background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; overflow: auto; max-height: 340px; }
+@media (max-width: 900px) { .tw-ig-vistas { grid-template-rows: 300px 300px; } }
