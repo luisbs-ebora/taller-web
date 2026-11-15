@@ -8,6 +8,7 @@ const CONOCIDAS = new Set(['html', 'head', 'body', 'title', 'meta', 'link', 'sty
   'strong', 'em', 'b', 'i', 'small', 'mark', 'span', 'div', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'a', 'img', 'figure', 'figcaption', 'table', 'caption',
   'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'form', 'label', 'input', 'select', 'option', 'textarea', 'button', 'fieldset', 'legend', 'video', 'audio',
   'source', 'track', 'iframe', 'header', 'nav', 'main', 'section', 'article', 'aside', 'footer', 'blockquote', 'code', 'pre', 'sub', 'sup', 'u', 's', 'q', 'cite', 'abbr', 'time', 'address']);
+const TIPOS_INPUT = new Set(['text', 'email', 'password', 'number', 'date', 'checkbox', 'radio', 'submit', 'button', 'reset', 'hidden', 'tel', 'url', 'search', 'file', 'time', 'color', 'range', 'month', 'week', 'datetime-local', 'image']);
 const ENLACE_VACIO = /^\s*(pincha|pulsa|haz clic|clic|click)?\s*(aqu[ií]|aqu[ií] mismo)\s*\.?\s*$/i;
 
 // ---------- Trocear el código en etiquetas y texto ----------
@@ -148,6 +149,12 @@ export function validar(codigo) {
         enlaceAbierto = { linea: t.linea, texto: '' };
       }
       if (n === 'label') labelsFor.push({ valor: attr(t, 'for'), linea: t.linea });
+      if (n === 'form') {
+        const metodo = attr(t, 'method');
+        if (metodo !== undefined && !['get', 'post', 'dialog'].includes(String(metodo).toLowerCase())) err('method', t.linea, `Valor incorrecto «${metodo}» en el atributo method de <form>.`, 'method solo puede ser get (los datos van en la dirección) o post (van ocultos dentro de la petición).');
+        if (attr(t, 'action') === undefined) aviso('action', t.linea, 'El <form> no tiene action.', 'action dice a qué dirección del servidor se envían los datos del formulario.');
+      }
+      if (n === 'input' && attr(t, 'type') !== undefined && !TIPOS_INPUT.has(String(attr(t, 'type')).toLowerCase())) err('tipo-input', t.linea, `Valor incorrecto «${attr(t, 'type')}» en el atributo type de <input>.`, 'Los tipos son text, email, password, number, date, checkbox, radio… Si el navegador no reconoce el tipo, trata el campo como texto normal y deja de comprobarlo.');
       if ((n === 'input' || n === 'select' || n === 'textarea') && !['submit', 'button', 'reset', 'hidden'].includes(attr(t, 'type'))) {
         if (attr(t, 'name') === undefined) aviso('name', t.linea, `El campo <${n}${attr(t, 'type') ? ` type="${attr(t, 'type')}"` : ''}> no tiene name.`, 'Sin name, ese dato no llega al servidor al enviar el formulario.');
       }

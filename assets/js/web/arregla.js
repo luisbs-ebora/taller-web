@@ -259,6 +259,9 @@ export const ERRORES = [
   { id: 'controls', pista: 'El vídeo no tiene botones.', aplicar: una(/ controls>/, '>') },
   { id: 'name', pista: 'Un dato del formulario no llegaría nunca al servidor.', aplicar: una(/(<input type="(?:text|email)" id="[^"]+") name="[^"]+"/, '$1') },
   { id: 'for', pista: 'Al pulsar el texto de un campo, no se activa el campo.', aplicar: una(/<label for="([^"]+)">/, '<label for="$1-campo">') },
+  { id: 'tipo', pista: 'Un campo del formulario tiene un tipo que el navegador no conoce.', aplicar: c => c.includes('<input type="email"') ? c.replace('<input type="email"', '<input type="emial"') : c.replace('<input type="text"', '<input type="texto"') },
+  { id: 'method', pista: 'El formulario no sabe de qué forma enviar los datos.', aplicar: una(/ method="post">/, ' method="enviar">') },
+  { id: 'action', pista: 'El formulario no dice adónde se envían los datos.', solucion: 'Falta el atributo action en la etiqueta <form>, con la dirección a la que se envían los datos.', aplicar: una(/<form action="[^"]+" /, '<form ') },
   { id: 'mayor', pista: 'A una etiqueta le falta un símbolo.', aplicar: una(/<h1>([^<]+)<\/h1>/, '<h1>$1</h1') },
 ];
 
