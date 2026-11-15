@@ -1,5 +1,5 @@
 // arregla.js — Práctica «Arregla la página»: una página bien hecha + 5 errores escondidos al azar.
-import { validar, contar } from './validador.js';
+import { validar, contarTodo } from './validador.js';
 
 const pagina = (titulo, sitio, cuerpo) => `<!DOCTYPE html>
 <html lang="es">
@@ -236,6 +236,69 @@ export const TEMAS = [
   </main>
 `),
   },
+  {
+    id: 'pizza', nombre: 'El pedido de una pizzería (formulario completo)', formulario: true,
+    codigo: pagina('Pizzería La Leña · Pedidos', 'Pizzería La Leña', `  <nav>
+    <a href="index.html">Inicio</a> |
+    <a href="carta.html">Carta</a>
+  </nav>
+  <main>
+    <h1>Haz tu pedido</h1>
+    <img src="img/pizza.jpg" alt="Pizza margarita recién salida del horno de leña" width="300">
+    <p>Rellena el formulario y te avisamos <strong>cuando esté lista</strong>.</p>
+    <h2>Las más pedidas</h2>
+    <ul>
+      <li>Margarita</li>
+      <li>Cuatro quesos</li>
+      <li>Barbacoa</li>
+    </ul>
+    <h2>Tu pedido</h2>
+    <form action="/pedido" method="post">
+      <p>
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+      </p>
+      <p>
+        <label for="correo">Correo:</label>
+        <input type="email" id="correo" name="correo" required>
+      </p>
+      <p>
+        <label for="dia">Día del pedido:</label>
+        <input type="date" id="dia" name="dia">
+      </p>
+      <p>
+        <label for="cantidad">Número de pizzas:</label>
+        <input type="number" id="cantidad" name="cantidad" min="1" max="10">
+      </p>
+      <p>
+        <label for="masa">Masa:</label>
+        <select id="masa" name="masa">
+          <option value="fina">Fina</option>
+          <option value="normal">Normal</option>
+          <option value="gruesa">Gruesa</option>
+        </select>
+      </p>
+      <p>
+        Entrega:
+        <input type="radio" id="local" name="entrega" value="local">
+        <label for="local">La recojo en el local</label>
+        <input type="radio" id="casa" name="entrega" value="casa">
+        <label for="casa">A domicilio</label>
+      </p>
+      <p>
+        <input type="checkbox" id="queso" name="queso" value="si">
+        <label for="queso">Con extra de queso</label>
+      </p>
+      <p>
+        <label for="notas">Comentarios:</label>
+        <textarea id="notas" name="notas" rows="3"></textarea>
+      </p>
+      <button type="submit">Enviar pedido</button>
+    </form>
+    <p><a href="carta.html">Ver la carta completa</a></p>
+  </main>
+`),
+  },
 ];
 
 // ---------- Catálogo de errores ----------
@@ -257,15 +320,22 @@ export const ERRORES = [
   { id: 'mayus', pista: 'Una etiqueta no sigue las buenas costumbres de XHTML.', aplicar: una(/<p>([^<]*<strong>)/, '<P>$1') },
   { id: 'vacio', pista: 'Se ha cerrado un elemento que es vacío.', aplicar: una(/(<img\b[^>]*>)/, '$1</img>') },
   { id: 'controls', pista: 'El vídeo no tiene botones.', aplicar: una(/ controls>/, '>') },
-  { id: 'name', pista: 'Un dato del formulario no llegaría nunca al servidor.', aplicar: una(/(<input type="(?:text|email)" id="[^"]+") name="[^"]+"/, '$1') },
-  { id: 'for', pista: 'Al pulsar el texto de un campo, no se activa el campo.', aplicar: una(/<label for="([^"]+)">/, '<label for="$1-campo">') },
-  { id: 'tipo', pista: 'Un campo del formulario tiene un tipo que el navegador no conoce.', aplicar: c => c.includes('<input type="email"') ? c.replace('<input type="email"', '<input type="emial"') : c.replace('<input type="text"', '<input type="texto"') },
-  { id: 'method', pista: 'El formulario no sabe de qué forma enviar los datos.', aplicar: una(/ method="post">/, ' method="enviar">') },
-  { id: 'action', pista: 'El formulario no dice adónde se envían los datos.', solucion: 'Falta el atributo action en la etiqueta <form>, con la dirección a la que se envían los datos.', aplicar: una(/<form action="[^"]+" /, '<form ') },
+  { id: 'name', form: true, pista: 'Un dato del formulario no llegaría nunca al servidor.', aplicar: una(/(<input type="(?:text|email)" id="[^"]+") name="[^"]+"/, '$1') },
+  { id: 'for', form: true, pista: 'Al pulsar el texto de un campo, no se activa el campo.', aplicar: una(/<label for="([^"]+)">/, '<label for="$1-campo">') },
+  { id: 'tipo', form: true, pista: 'Un campo del formulario tiene un tipo que el navegador no conoce.', aplicar: c => c.includes('<input type="email"') ? c.replace('<input type="email"', '<input type="emial"') : c.replace('<input type="text"', '<input type="texto"') },
+  { id: 'method', form: true, pista: 'El formulario no sabe de qué forma enviar los datos.', aplicar: una(/ method="post">/, ' method="enviar">') },
+  { id: 'action', form: true, pista: 'El formulario no dice adónde se envían los datos.', solucion: 'Falta el atributo action en la etiqueta <form>, con la dirección a la que se envían los datos.', aplicar: una(/<form action="[^"]+" /, '<form ') },
+  { id: 'boton', form: true, pista: 'El botón del formulario tiene un tipo que no existe.', aplicar: una(/<button type="submit">/, '<button type="enviar">') },
+  { id: 'radio-name', form: true, pista: 'Dos opciones que deberían excluirse se pueden marcar a la vez.', aplicar: c => { const ms = [...c.matchAll(/<input type="radio" id="([^"]+)" name="[^"]+"/g)]; if (ms.length < 2) return null; const m = ms[1]; return c.slice(0, m.index) + `<input type="radio" id="${m[1]}" name="${m[1]}"` + c.slice(m.index + m[0].length); } },
+  { id: 'radio-value', form: true, pista: 'Al marcar una de las opciones, el servidor no sabría cuál se ha elegido.', aplicar: una(/(<input type="radio"[^>]*?) value="[^"]*"/, '$1') },
+  { id: 'id-rep', form: true, pista: 'Dos campos se llaman igual donde no pueden repetirse.', aplicar: c => { const ms = [...c.matchAll(/<input type="radio" id="([^"]+)"/g)]; if (ms.length < 2) return null; const m = ms[1]; return c.slice(0, m.index) + `<input type="radio" id="${ms[0][1]}"` + c.slice(m.index + m[0].length); } },
+  { id: 'select', form: true, pista: 'Las opciones de la lista desplegable se han quedado sin su lista.', solucion: c => `Faltan ${(c.match(/<select[^>]*>/) || ['<select>'])[0]} antes de las option y </select> después.`, aplicar: una(/\n *<select[^>]*>\n([\s\S]*?)\n *<\/select>/, '\n$1') },
+  { id: 'textarea', form: true, pista: 'El cuadro de varias líneas está escrito como si fuera otro tipo de campo.', solucion: c => `El cuadro de varias líneas no es un input. Se escribe: ${(c.match(/<textarea[^>]*><\/textarea>/) || [''])[0]}`, aplicar: una(/<textarea( id="[^"]+" name="[^"]+")[^>]*><\/textarea>/, '<input type="textarea"$1>') },
+  { id: 'label-suelto', form: true, pista: 'El texto de un campo está suelto: no es una etiqueta de formulario.', aplicar: c => { const m = [...c.matchAll(/<label for="[^"]+">([^<]+)<\/label>(\s*<input type="(?!radio|checkbox))/g)].pop(); return m ? c.slice(0, m.index) + m[1] + m[2] + c.slice(m.index + m[0].length) : null; } },
   { id: 'mayor', pista: 'A una etiqueta le falta un símbolo.', aplicar: una(/<h1>([^<]+)<\/h1>/, '<h1>$1</h1') },
 ];
 
-const CUENTA = ['img', 'li', 'a', 'td', 'th', 'tr', 'h1', 'h2', 'p', 'input', 'video', 'table'];
+const CUENTA = ['img', 'li', 'a', 'td', 'th', 'tr', 'h1', 'h2', 'p', 'input', 'video', 'table', 'form', 'label', 'select', 'option', 'textarea', 'button'];
 
 const clave = r => r.codigo;
 function lineaDistinta(a, b) {
@@ -279,7 +349,11 @@ function lineaDistinta(a, b) {
 export function crearEjercicio(temaId, n = 5, azar = Math.random) {
   const tema = TEMAS.find(t => t.id === temaId) || TEMAS[Math.floor(azar() * TEMAS.length)];
   for (let intento = 0; intento < 30; intento++) {
-    const orden = ERRORES.slice().sort(() => azar() - 0.5);
+    let orden = ERRORES.slice().sort(() => azar() - 0.5);
+    if (tema.formulario) {   // en la página de formulario, cuatro de los cinco errores son del formulario
+      const f = orden.filter(e => e.form), o = orden.filter(e => !e.form);
+      orden = [...f.slice(0, 4), ...o, ...f.slice(4)];
+    }
     let codigo = tema.codigo;
     const usados = new Set(validar(codigo).map(clave));
     const errores = [];
@@ -292,7 +366,7 @@ export function crearEjercicio(temaId, n = 5, azar = Math.random) {
       if (!despues.length || despues.some(k => usados.has(k))) continue;
       despues.forEach(k => usados.add(k));
       const d = lineaDistinta(codigo, nuevo);
-      errores.push({ id: e.id, pista: e.pista, codigos: [...new Set(despues)], bien: d.bien, mal: e.solucion ? null : d.mal, solucion: e.solucion || null });
+      errores.push({ id: e.id, pista: e.pista, codigos: [...new Set(despues)], bien: d.bien, mal: e.solucion ? null : d.mal, solucion: typeof e.solucion === 'function' ? e.solucion(codigo) : e.solucion || null });
       codigo = nuevo;
     }
     if (errores.length === n) {
@@ -310,6 +384,11 @@ export function corregir(ej, codigo) {
   const res = validar(codigo);
   const presentes = new Set(res.map(clave));
   const errores = ej.errores.map(e => ({ ...e, arreglado: !e.codigos.some(k => presentes.has(k)) }));
-  const faltan = CUENTA.map(nombre => ({ nombre, falta: contar(ej.original, nombre) - contar(codigo, nombre) })).filter(x => x.falta > 0);
-  return { res, errores, faltan, terminado: !res.length && !faltan.length };
+  // faltan: elementos que tiene la página correcta y aquí no están.
+  // borrados: los que ha quitado el alumno (algunos errores ya cambian una etiqueta por otra, y eso no cuenta).
+  const bien = contarTodo(ej.original), dado = contarTodo(ej.codigo), ahora = contarTodo(codigo);
+  const n = (c, k) => c[k] || 0;
+  const faltan = CUENTA.map(nombre => ({ nombre, falta: n(bien, nombre) - n(ahora, nombre) })).filter(x => x.falta > 0);
+  const borrados = CUENTA.map(nombre => ({ nombre, falta: Math.min(n(bien, nombre), n(dado, nombre)) - n(ahora, nombre) })).filter(x => x.falta > 0);
+  return { res, errores, faltan, borrados, terminado: !res.length && !faltan.length };
 }

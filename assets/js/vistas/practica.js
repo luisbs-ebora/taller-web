@@ -95,7 +95,9 @@ export function vistaPractica() {
       li.append(...cuerpo);
       return li;
     }));
-    if (c.faltan.length) contador.replaceChildren(h('span.tw-aviso', `Ojo: has borrado contenido (${c.faltan.map(f => `${f.falta} ${f.nombre}`).join(', ')}). Hay que arreglar los errores sin quitar nada de la página.`));
+    const lista = l => l.map(f => `${f.falta} ${f.nombre}`).join(', ');
+    if (c.borrados.length) contador.replaceChildren(h('span.tw-aviso', `Ojo: has borrado contenido (${lista(c.borrados)}). Hay que arreglar los errores sin quitar nada de la página.`));
+    else if (!c.res.length && c.faltan.length) contador.replaceChildren(h('span.tw-aviso', `El validador ya no protesta, pero a la página le falta contenido que tenía que estar (${lista(c.faltan)}). Vuelve a ponerlo.`));
     else if (c.terminado) contador.replaceChildren(h('span.tw-bien', `¡Página arreglada! ${solucionesVistas.size ? `Has mirado ${solucionesVistas.size} solución${solucionesVistas.size === 1 ? '' : 'es'}.` : 'Sin mirar ninguna solución.'} Prueba con otra.`));
     else contador.replaceChildren();
     return c;

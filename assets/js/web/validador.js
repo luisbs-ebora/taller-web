@@ -96,6 +96,8 @@ export function validar(codigo) {
   let hayHtml = false, hayHead = false, hayBody = false;
   const enlaces = [];
   let enlaceAbierto = null;
+  const campos = [];      // campos de formulario, para comprobar que cada uno tiene su label
+  const radios = {};      // botones de opción agrupados por name
 
   for (const t of toks) {
     if (t.tipo === 'comentario' && t.abierto) err('comentario', t.linea, 'Comentario sin cerrar.', 'Un comentario empieza por <!-- y acaba por -->. Sin el final, todo lo que sigue queda oculto.');
@@ -155,9 +157,17 @@ export function validar(codigo) {
         if (attr(t, 'action') === undefined) aviso('action', t.linea, 'El <form> no tiene action.', 'action dice a qué dirección del servidor se envían los datos del formulario.');
       }
       if (n === 'input' && attr(t, 'type') !== undefined && !TIPOS_INPUT.has(String(attr(t, 'type')).toLowerCase())) err('tipo-input', t.linea, `Valor incorrecto «${attr(t, 'type')}» en el atributo type de <input>.`, 'Los tipos son text, email, password, number, date, checkbox, radio… Si el navegador no reconoce el tipo, trata el campo como texto normal y deja de comprobarlo.');
-      if ((n === 'input' || n === 'select' || n === 'textarea') && !['submit', 'button', 'reset', 'hidden'].includes(attr(t, 'type'))) {
+      if ((n === 'input' || n === 'select' || n === 'textarea') && !['submit', 'button', 'reset', 'hidden', 'image'].includes(attr(t, 'type'))) {
         if (attr(t, 'name') === undefined) aviso('name', t.linea, `El campo <${n}${attr(t, 'type') ? ` type="${attr(t, 'type')}"` : ''}> no tiene name.`, 'Sin name, ese dato no llega al servidor al enviar el formulario.');
+        campos.push({ nombre: n, tipo: attr(t, 'type'), id, linea: t.linea, dentroLabel: pila.some(x => x.nombre === 'label') });
       }
+      if (n === 'input' && String(attr(t, 'type')).toLowerCase() === 'radio') {
+        const grupo = attr(t, 'name');
+        if (grupo !== undefined) (radios[grupo] = radios[grupo] || []).push(t.linea);
+        if (attr(t, 'value') === undefined) aviso('value-radio', t.linea, 'El botón de opción no tiene value.', 'value es lo que se envía al marcar esa opción. Sin él, el servidor no sabe cuál se ha elegido.');
+      }
+      if (n === 'option' && !['select', 'optgroup', 'datalist'].includes(padre)) err('option-fuera', t.linea, `Un <option> tiene que ir dentro de <select>${padre ? ` (está dentro de <${padre}>)` : ''}.`, 'Las opciones de una lista desplegable siempre van dentro de <select> … </select>.');
+      if (n === 'button' && attr(t, 'type') !== undefined && !['submit', 'reset', 'button'].includes(String(attr(t, 'type')).toLowerCase())) err('tipo-button', t.linea, `Valor incorrecto «${attr(t, 'type')}» en el atributo type de <button>.`, 'El botón que envía el formulario es <button type="submit">.');
       if (n === 'video' || n === 'audio') { if (attr(t, 'controls') === undefined) aviso('controls', t.linea, `El <${n}> no tiene controls.`, 'Sin controls no aparecen los botones de reproducir y pausar.'); }
       if (VACIOS.has(n)) continue;
       if (t.autocierre) continue;
@@ -196,6 +206,14 @@ export function validar(codigo) {
   labelsFor.forEach(l => {
     if (l.valor !== undefined && !ids[l.valor]) err('label-for', l.linea, `El label for="${l.valor}" no corresponde a ningún id.`, 'El for del label tiene que ser igual que el id de su campo: así, al pulsar el texto se activa el campo.');
   });
+  const conLabel = new Set(labelsFor.map(l => l.valor).filter(v => v !== undefined));
+  campos.forEach(c => {
+    if (c.dentroLabel || (c.id !== undefined && conLabel.has(c.id))) return;
+    aviso('sin-label', c.linea, `El campo <${c.nombre}${c.tipo ? ` type="${c.tipo}"` : ''}> no tiene label.`, 'Cada campo lleva su <label for="…"> con el mismo valor que el id del campo: dice qué se pide y, al pulsar el texto, se activa el campo.');
+  });
+  Object.entries(radios).forEach(([grupo, lineas]) => {
+    if (lineas.length === 1) aviso('radio-solo', lineas[0], `Solo hay un botón de opción con name="${grupo}".`, 'Los botones de opción van en grupo: los que tienen el mismo name se excluyen entre sí (solo se puede marcar uno).');
+  });
   out.sort((a, b) => a.linea - b.linea || (a.tipo === b.tipo ? 0 : a.tipo === 'error' ? -1 : 1));
   return out;
 }
@@ -203,4 +221,11 @@ export function validar(codigo) {
 // Contar elementos (para comprobar que no se ha borrado contenido al «arreglar»)
 export function contar(codigo, nombre) {
   return trocear(codigo).filter(t => t.tipo === 'apertura' && t.nombre === nombre).length;
+}
+
+// Cuántos elementos hay de cada etiqueta: { p: 6, li: 3, … }
+export function contarTodo(codigo) {
+  const c = {};
+  trocear(codigo).forEach(t => { if (t.tipo === 'apertura') c[t.nombre] = (c[t.nombre] || 0) + 1; });
+  return c;
 }
