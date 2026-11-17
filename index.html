@@ -19,19 +19,21 @@
 <body>
   <a class="saltar" href="#contenido">Saltar al contenido</a>
   <header class="cabecera">
+    <button class="btn-lateral" id="btn-lateral" type="button" aria-controls="lateral" aria-expanded="false" aria-label="Mostrar el menú">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>Menú</span>
+    </button>
     <a class="marca" href="#/">
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="4" width="28" height="24" rx="4" fill="var(--azul)"/><rect x="2" y="4" width="28" height="6" rx="3" fill="var(--ambar)"/><path d="M11 15l-4 4 4 4M21 15l4 4-4 4M18 13l-4 12" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span><b>Taller Web</b><small>1.º SMR · Aplicaciones web</small></span>
     </a>
-    <nav class="menu" aria-label="Secciones">
-      <a href="#/" data-ruta="inicio">Inicio</a>
-      <a href="#/clase" data-ruta="clase">Mi primer sitio web</a>
-      <a href="#/practica" data-ruta="practica">Arregla la página</a>
-    </nav>
   </header>
-  <main id="contenido" tabindex="-1">
-    <div class="cargando">Cargando…</div>
-  </main>
+  <div class="marco">
+    <nav class="lateral" id="lateral" aria-label="Temas y secciones" inert></nav>
+    <main id="contenido" tabindex="-1">
+      <div class="cargando">Cargando…</div>
+    </main>
+  </div>
   <footer class="pie">
     <span>Aplicaciones web · Ébora Formación</span>
     <a href="#/creditos">Créditos</a>

@@ -1,6 +1,8 @@
 // main.js — Enrutador de la web (rutas con #/…). Cada vista devuelve { el, montado?, destruir? }.
 import { h } from './util.js';
 import { vistaInicio } from './vistas/inicio.js';
+import { vistaTema } from './vistas/temas.js';
+import { crearLateral } from './lateral.js';
 import { vistaEscena } from './web/escena.js';
 import { vistaPractica } from './vistas/practica.js';
 import { vistaIguala } from './vistas/iguala.js';
@@ -19,6 +21,7 @@ function vistaCreditos() {
 const RUTAS = [
   [/^$/, () => vistaInicio()],
   [/^creditos$/, () => vistaCreditos()],
+  [/^tema\/([\w-]+)$/, m => vistaTema(m[1])],
   [/^clase$/, () => vistaEscena()],
   [/^practica$/, () => vistaPractica()],
   [/^css$/, () => vistaIguala()],
@@ -31,10 +34,7 @@ async function navegar() {
   if (actual && actual.destruir) { try { actual.destruir(); } catch (e) { console.error(e); } }
   actual = null;
   main.replaceChildren(h('div.cargando', 'Cargando…'));
-  const seccion = ruta === '' ? 'inicio' : ruta.split('/')[0];
-  document.querySelectorAll('.menu a').forEach(a => {
-    if (a.dataset.ruta === seccion) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
-  });
+  if (lateral) lateral.actualizar(ruta);
   try {
     const r = RUTAS.find(([re]) => re.test(ruta));
     if (!r) throw new Error('Esta página no existe.');
@@ -51,6 +51,12 @@ async function navegar() {
   window.scrollTo(0, 0);
   main.focus({ preventScroll: true });
 }
+
+// El menú lateral se monta aparte: si fallara, la web sigue funcionando sin él.
+let lateral = null;
+try {
+  lateral = crearLateral(document.getElementById('lateral'), document.getElementById('btn-lateral'));
+} catch (e) { console.error(e); document.getElementById('btn-lateral').hidden = true; }
 
 window.addEventListener('hashchange', navegar);
 navegar();
